@@ -10,6 +10,8 @@ class ProductItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final product = Provider.of<Product>(context, listen: false);
     final cart = Provider.of<Cart>(context, listen: false);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: GridTile(
@@ -30,8 +32,19 @@ class ProductItem extends StatelessWidget {
           leading: Consumer<Product>(
               builder: (ctx, product, child) => IconButton(
                     color: Theme.of(context).accentColor,
-                    onPressed: () {
-                      product.toggleIsFavorite();
+                    onPressed: () async {
+                      try {
+                        await product.toggleIsFavorite();
+                      } catch (error) {
+                        scaffoldMessenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Updating failed',
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
+                      }
                     },
                     icon: Icon(
                       product.isFavorite

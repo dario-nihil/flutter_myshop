@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import './product.dart';
+import '../models/http_exception.dart';
 
 class Products with ChangeNotifier {
   List<Product> _items = [
@@ -77,6 +78,9 @@ class Products with ChangeNotifier {
     try {
       final response = await http.get(url);
       final extracetdData = json.decode(response.body) as Map<String, dynamic>;
+      if (extracetdData == null) {
+        return;
+      }
       final List<Product> loadedProducts = [];
       extracetdData.forEach((prodId, prodData) {
         loadedProducts.add(
@@ -144,8 +148,28 @@ class Products with ChangeNotifier {
     }
   }
 
-  void deleteProduct(String id) {
+  // use of optimistic updating pattern
+  Future<void> deleteProduct(String id) async {
+    final prodIndex = _items.indexWhere((prod) => prod.id == id);
+    // retain a reference to the product in memory
+    var selectedProd = _items[prodIndex];
+    final url = Uri.https(
+        'flutter-myshop-72fc3-default-rtdb.europe-west1.firebasedatabase.app',
+        '/products/$id.json');
+
     _items.removeWhere((prod) => prod.id == id);
     notifyListeners();
+
+    final response = await http.delete(url);
+
+    if (response.statusCode >= 400) {
+      _items.insert(prodIndex, selectedProd);
+      notifyListeners();
+
+      throw HttpException('Could not delete product.');
+    }
+
+    // release the reference to the product in memory
+    selectedProd = null;
   }
 }
