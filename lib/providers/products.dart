@@ -42,7 +42,11 @@ class Products with ChangeNotifier {
     // ),
   ];
 
-  var _showFavoritesOnly = false;
+  final String _authToken;
+
+  Products(this._authToken, this._items);
+
+  //var _showFavoritesOnly = false;
 
   List<Product> get items {
     // if (_showFavoritesOnly) {
@@ -72,9 +76,14 @@ class Products with ChangeNotifier {
   // }
 
   Future<void> fetchAndSetProducts() async {
+    var _params = {
+      'auth': _authToken,
+    };
+
     final url = Uri.https(
         'flutter-myshop-72fc3-default-rtdb.europe-west1.firebasedatabase.app',
-        '/products.json');
+        '/products.json',
+        _params);
     try {
       final response = await http.get(url);
       final extracetdData = json.decode(response.body) as Map<String, dynamic>;
@@ -102,9 +111,14 @@ class Products with ChangeNotifier {
   }
 
   Future<void> addProoduct(Product product) async {
+    var _params = {
+      'auth': _authToken,
+    };
+
     final url = Uri.https(
         'flutter-myshop-72fc3-default-rtdb.europe-west1.firebasedatabase.app',
-        '/products.json');
+        '/products.json',
+        _params);
     try {
       final response = await http.post(
         url,
@@ -131,11 +145,16 @@ class Products with ChangeNotifier {
   }
 
   Future<void> updateProduct(String id, Product newProduct) async {
+    var _params = {
+      'auth': _authToken,
+    };
+
     final prodIdx = _items.indexWhere((prod) => prod.id == id);
     if (prodIdx >= 0) {
       final url = Uri.https(
           'flutter-myshop-72fc3-default-rtdb.europe-west1.firebasedatabase.app',
-          '/products/$id.json');
+          '/products/$id.json',
+          _params);
       await http.patch(url,
           body: json.encode({
             'title': newProduct.title,
@@ -150,12 +169,17 @@ class Products with ChangeNotifier {
 
   // use of optimistic updating pattern
   Future<void> deleteProduct(String id) async {
+    var _params = {
+      'auth': _authToken,
+    };
+
     final prodIndex = _items.indexWhere((prod) => prod.id == id);
     // retain a reference to the product in memory
     var selectedProd = _items[prodIndex];
     final url = Uri.https(
         'flutter-myshop-72fc3-default-rtdb.europe-west1.firebasedatabase.app',
-        '/products/$id.json');
+        '/products/$id.json',
+        _params);
 
     _items.removeWhere((prod) => prod.id == id);
     notifyListeners();
