@@ -28,20 +28,24 @@ class Product with ChangeNotifier {
   }
 
   // optimistic upadating pattern
-  Future<void> toggleIsFavorite(String token) async {
+  Future<void> toggleIsFavorite(String token, String userId) async {
     var _params = {
       'auth': token,
     };
     final oldStatus = isFavorite;
     final url = Uri.https(
         'flutter-myshop-72fc3-default-rtdb.europe-west1.firebasedatabase.app',
-        '/products/$id.json',
+        '/userFavorites/$userId/$id.json',
         _params);
 
     _setFavValue(!isFavorite);
 
-    final result =
-        await http.patch(url, body: json.encode({'isFavorite': isFavorite}));
+    final result = await http.put(
+      url,
+      body: json.encode(
+        isFavorite,
+      ),
+    );
 
     if (result.statusCode >= 400) {
       _setFavValue(oldStatus);
